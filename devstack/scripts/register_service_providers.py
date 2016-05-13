@@ -23,18 +23,21 @@ proc.communicate()
 
 try:
     OS_AUTH_URL = os.environ['OS_AUTH_URL'].strip('\n')
-    OS_PROJECT_ID = os.environ['OS_PROJECT_ID'].strip('\n')
-    OS_USER_ID = os.environ['OS_USER_ID'].strip('\n')
+    OS_PROJECT_NAME = os.environ['OS_PROJECT_NAME'].strip('\n')
+    OS_USERNAME = os.environ['OS_USERNAME'].strip('\n')
     OS_PASSWORD = os.environ['OS_PASSWORD'].strip('\n')
+    OS_USER_DOMAIN_ID = os.environ['OS_USER_DOMAIN_ID'].strip('\n')
+    OS_PROJECT_DOMAIN_ID = os.environ['OS_PROJECT_DOMAIN_ID'].strip('\n')
 except KeyError as e:
     raise SystemExit('%s environment variable not set.' % e)
 
-
 def client_for_admin_user():
     auth = v3.Password(auth_url=OS_AUTH_URL,
-                       user_id=OS_USER_ID,
+                       username=OS_USERNAME,
                        password=OS_PASSWORD,
-                       project_id=OS_PROJECT_ID)
+                       project_name=OS_PROJECT_NAME,
+                       user_domain_id=OS_USER_DOMAIN_ID,
+                       project_domain_id=OS_PROJECT_DOMAIN_ID)
     session = ksc_session.Session(auth=auth)
     return keystone_v3.Client(session=session)
 
