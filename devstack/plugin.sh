@@ -8,6 +8,8 @@ function install_idp(){
 
 function configure_idp(){
     sudo python $K2K_IDP_SCRIPTS/configure_keystone.py $IDP_IP
+
+    keystone-manage pki_setup
     keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
 
     # Restart Apache2/httpd
