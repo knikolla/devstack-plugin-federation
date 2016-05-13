@@ -63,14 +63,14 @@ for host in hosts.entries:
         service_providers.append({'id': host.names[0], 'address': host.address})
 
 for sp in service_providers:
-    try:
-        client.federation.service_providers.get(sp['id'])
-        #Note(knikolla): SP is already registered, skip.
-    except keystoneauth1.exceptions.http.NotFound:
-        #Note(knikolla): SP is not already registered.
-        SP_url="http://" + sp['address'] + ":5000/Shibboleth.sso/SAML2/ECP"
-        AUTH_url="http://" + sp['address'] + ":35357/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth"
+    #try:
+    #    client.federation.service_providers.get(sp['id'])
+    #    #Note(knikolla): SP is already registered, skip.
+    #except keystoneauth1.exceptions.http.NotFound:
+    #    #Note(knikolla): SP is not already registered.
+    SP_url="http://" + sp['address'] + ":5000/Shibboleth.sso/SAML2/ECP"
+    AUTH_url="http://" + sp['address'] + ":35357/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth"
 
-        print('\nCreate SP')
+    print('\nCreate SP')
 
-        create_sp(client, sp['id'], SP_url, AUTH_url)
+    create_sp(client, sp['id'], SP_url, AUTH_url)
