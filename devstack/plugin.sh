@@ -1,25 +1,33 @@
 #!/usr/bin/env bash
 
-K2K_IDP_SCRIPTS=$DEST/k2k-idp/devstack/scripts/
+K2K_SCRIPTS=$DEST/k2k-idp/devstack/scripts/
 
 function install_idp(){
+    if $IS_K2K_IDP; then
+        if is_ubuntu; then
+            install_package xmlsec1
+            install_package python-pip
+        fi
+    fi
     sudo pip install pysaml2 configparser python-hosts
 }
 
 function configure_idp(){
-    sudo python $K2K_IDP_SCRIPTS/configure_keystone.py $IDP_IP
+    if $IS_K2K_IDP; then
+        sudo python $K2K_IDP_SCRIPTS/configure_keystone_idp.py $IDP_IP
 
-    keystone-manage pki_setup
-    keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
+        keystone-manage pki_setup
+        keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
 
-    # Restart Apache2/httpd
-    if is_ubuntu; then
-        restart_service apache2
-    else
-        restart_service httpd
+        # Restart Apache2/httpd
+        if is_ubuntu; then
+            restart_service apache2
+        else
+            restart_service httpd
+        fi
+
+        python $K2K_IDP_SCRIPTS/register_service_providers.py
     fi
-
-    python $K2K_IDP_SCRIPTS/register_service_providers.py
 }
 
 
