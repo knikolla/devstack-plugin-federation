@@ -1,76 +1,60 @@
 #!/usr/bin/python
-# Registers the service providers present in /etc/hosts
-# Authors: Minying Lu, Kyle Liberti, Kristi Nikolla
-# Boston Universtiy - Massachusetts Open Cloud
-import os, subprocess
+# Copyright 2016 Massachusetts Open Cloud
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
-import python_hosts
+import os
+import sys
 
-from keystoneclient import session as ksc_session
-from keystoneclient.auth.identity import v3
-from keystoneclient.v3 import client as keystone_v3
+from keystoneauth1.identity import v3
+from keystoneauth1 import session
+from keystoneclient.v3 import client
 
-import keystoneauth1.exceptions.http
-
-# Source environment variables from file
-# http://stackoverflow.com/questions/3503719/emulating-bash-source-in-python
-command = ['bash', '-c', 'source ~/admin && env']
-proc = subprocess.Popen(command, stdout = subprocess.PIPE)
-for line in proc.stdout:
-  (key, _, value) = line.partition("=")
-  os.environ[key] = value
-proc.communicate()
-
-try:
-    OS_AUTH_URL = os.environ['OS_AUTH_URL'].strip('\n')
-    OS_PROJECT_NAME = os.environ['OS_PROJECT_NAME'].strip('\n')
-    OS_USERNAME = os.environ['OS_USERNAME'].strip('\n')
-    OS_PASSWORD = os.environ['OS_PASSWORD'].strip('\n')
-    OS_USER_DOMAIN_ID = os.environ['OS_USER_DOMAIN_ID'].strip('\n')
-    OS_PROJECT_DOMAIN_ID = os.environ['OS_PROJECT_DOMAIN_ID'].strip('\n')
-except KeyError as e:
-    raise SystemExit('%s environment variable not set.' % e)
-
-def client_for_admin_user():
-    auth = v3.Password(auth_url=OS_AUTH_URL,
-                       username=OS_USERNAME,
-                       password=OS_PASSWORD,
-                       project_name=OS_PROJECT_NAME,
-                       user_domain_id=OS_USER_DOMAIN_ID,
-                       project_domain_id=OS_PROJECT_DOMAIN_ID)
-    session = ksc_session.Session(auth=auth)
-    return keystone_v3.Client(session=session)
+sp_ip = sys.argv[1]
 
 
-def create_sp(client, sp_id, sp_url, auth_url):
-        sp_ref = {'id': sp_id,
-                  'sp_url': sp_url,
-                  'auth_url': auth_url,
-                  'enabled': True}
-        return client.federation.service_providers.create(**sp_ref)
+def get_env_variables():
+    c = dict()
+    try:
+        c['OS_AUTH_URL'] = os.environ['OS_AUTH_URL'].strip('\n')
+        c['OS_PROJECT_NAME'] = os.environ['OS_PROJECT_NAME'].strip('\n')
+        c['OS_USERNAME'] = os.environ['OS_USERNAME'].strip('\n')
+        c['OS_PASSWORD'] = os.environ['OS_PASSWORD'].strip('\n')
+        c['OS_USER_DOMAIN_ID'] = os.environ['OS_USER_DOMAIN_ID'].strip('\n')
+        c['OS_PROJECT_DOMAIN_ID'] = os.environ['OS_PROJECT_DOMAIN_ID'].strip('\n')
+        return c
+    except KeyError as e:
+        raise SystemExit('%s environment variable not set.' % e)
 
-# Used to execute all admin actions
-client = client_for_admin_user()
-print "print user list to verify client object"
-print client.users.list()
 
-# Extract hosts information
-hosts = python_hosts.Hosts()
+def create_client(credentials):
+    auth = v3.Password(**credentials)
+    sess = session.Session(auth=auth)
+    return client.Client(session=sess)
 
-service_providers = []
-for host in hosts.entries:
-    if host.names is not None and 'sp' in host.names[0]:
-        service_providers.append({'id': host.names[0], 'address': host.address})
 
-for sp in service_providers:
-    #try:
-    #    client.federation.service_providers.get(sp['id'])
-    #    #Note(knikolla): SP is already registered, skip.
-    #except keystoneauth1.exceptions.http.NotFound:
-    #    #Note(knikolla): SP is not already registered.
-    SP_url="http://" + sp['address'] + ":5000/Shibboleth.sso/SAML2/ECP"
-    AUTH_url="http://" + sp['address'] + ":35357/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth"
+def register_sp(client, sp_id, sp_ip):
+    sp_url = "http://" + sp_ip + ":5000/Shibboleth.sso/SAML2/ECP"
+    auth_url = "http://" + sp_ip + ":35357/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth"
 
-    print('\nCreate SP')
+    return client.federation.service_providers.create(id=sp_id,
+                                                      sp_url=sp_url,
+                                                      auth_url=auth_url,
+                                                      enabled=True)
 
-    create_sp(client, sp['id'], SP_url, AUTH_url)
+if __name__ == '__main__':
+    credentials = get_env_variables()
+    ksclient = create_client(credentials)
+    register_sp(client=ksclient,
+                sp_id='sp',
+                sp_ip=sp_ip)

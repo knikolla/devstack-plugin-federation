@@ -14,7 +14,7 @@ function install_idp(){
 
 function configure_idp(){
     if $IS_K2K_IDP; then
-        sudo python $K2K_IDP_SCRIPTS/configure_keystone_idp.py $IDP_IP
+        sudo python $K2K_SCRIPTS/configure_keystone_idp.py $IDP_IP
 
         keystone-manage pki_setup
         keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
@@ -26,7 +26,7 @@ function configure_idp(){
             restart_service httpd
         fi
 
-        python $K2K_IDP_SCRIPTS/register_service_providers.py
+        # python $K2K_SCRIPTS/register_service_providers.py
     fi
 }
 
