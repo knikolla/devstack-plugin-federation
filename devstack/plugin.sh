@@ -34,8 +34,7 @@ function configure_idp(){
 
     restart_apache_server
 
-    openstack --os-identity-api-version 3 service provider create \
-        --auth-url $SP_AUTH_URL --service-provider-url $SP_URL $SP_ID
+
 }
 
 function install_sp() {
