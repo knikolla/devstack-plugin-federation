@@ -26,12 +26,12 @@ sp_ip = sys.argv[1]
 def get_env_variables():
     c = dict()
     try:
-        c['OS_AUTH_URL'] = os.environ['OS_AUTH_URL'].strip('\n')
-        c['OS_PROJECT_NAME'] = os.environ['OS_PROJECT_NAME'].strip('\n')
-        c['OS_USERNAME'] = os.environ['OS_USERNAME'].strip('\n')
-        c['OS_PASSWORD'] = os.environ['OS_PASSWORD'].strip('\n')
-        c['OS_USER_DOMAIN_ID'] = os.environ['OS_USER_DOMAIN_ID'].strip('\n')
-        c['OS_PROJECT_DOMAIN_ID'] = os.environ['OS_PROJECT_DOMAIN_ID'].strip('\n')
+        c['auth_url'] = os.environ['OS_AUTH_URL'].strip('\n')
+        c['project_name'] = os.environ['OS_PROJECT_NAME'].strip('\n')
+        c['username'] = os.environ['OS_USERNAME'].strip('\n')
+        c['password'] = os.environ['OS_PASSWORD'].strip('\n')
+        c['user_domain_id'] = os.environ['OS_USER_DOMAIN_ID'].strip('\n')
+        c['project_domain_id'] = os.environ['OS_PROJECT_DOMAIN_ID'].strip('\n')
         return c
     except KeyError as e:
         raise SystemExit('%s environment variable not set.' % e)
