@@ -14,7 +14,7 @@
 # under the License.
 
 SCRIPTS=$DEST/federation/devstack/scripts
-PLUGIN=$DEST/federation/devstack/files
+FILES=$DEST/federation/devstack/files
 
 function install_idp(){
     if is_ubuntu; then
@@ -51,13 +51,19 @@ function install_sp() {
 }
 
 function configure_sp() {
+    local apache_conf
     if is_ubuntu; then
         sudo shib-keygen -f
+        apache_conf="/etc/apache2/sites-available/keystone.conf"
     else
         ./etc/shibboleth/keygen.sh -f
+        apache_conf="/etc/httpd/conf.d/keystone.conf"
     fi
 
-    sudo python $SCRIPTS/sp/configure_apache.py
+    # Note(knikolla): Configuring apache
+    sudo sed -i "/\<VirtualHost \*\:5000\>/a WSGIScriptAliasMatch \^(/v3/OS-FEDERATION/identity_providers/.\*?/protocols/.\*?/auth)$ /var/www/keystone/main/$1" $apache_conf
+    sudo cat $FILES/shib_handler.txt > $apache_conf
+
     sudo python $SCRIPTS/sp/configure_shibboleth.py
 
     iniset $KEYSTONE_CONF auth methods "external,password,token,oauth1,saml2"
@@ -78,7 +84,7 @@ function configure_sp() {
     openstack --os-identity-api-version 3 identity provider create \
         --remote-id $IDP_REMOTE_ID $IDP_ID
     openstack --os-identity-api-version 3 mapping create \
-        --rules $PLUGIN/mapping.txt mapping1
+        --rules $FILES/mapping.txt mapping1
     openstack --os-identity-api-version 3 federation protocol create \
         --identity-provider $IDP_ID --mapping mapping1 saml2
 }
