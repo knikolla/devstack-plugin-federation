@@ -25,7 +25,11 @@ function install_idp(){
 
 function configure_idp(){
     if $IS_K2K_IDP; then
-        sudo python $KEYSTONE_SCRIPTS/idp/configure_keystone.py $IDP_IP
+        iniset $KEYSTONE_CONF saml certfile "/etc/keystone/ssl/certs/ca.pem"
+        iniset $KEYSTONE_CONF saml keyfile "/etc/keystone/ssl/private/cakey.pem"
+        iniset $KEYSTONE_CONF saml idp_entity_id "http://$HOST_IP:5000/v3/OS-FEDERATION/saml2/idp"
+        iniset $KEYSTONE_CONF saml idp_sso_endpoint "http://$HOST_IP:5000/v3/OS-FEDERATION/saml2/sso"
+        iniset $KEYSTONE_CONF saml idp_metadata_path = "/etc/keystone/keystone_idp_metadata.xml"
 
         keystone-manage pki_setup
         keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
@@ -37,7 +41,8 @@ function configure_idp(){
             restart_service httpd
         fi
 
-        python $KEYSTONE_SCRIPTS/idp/register_service_providers.py $HOST_IP
+        openstack --os-identity-api-version 3 service provider create \
+            --auth-url $SP_AUTH_URL --service-provider-url $SP_URL sp
     fi
 }
 
