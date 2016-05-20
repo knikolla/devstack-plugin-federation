@@ -13,14 +13,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-KEYSTONE_SCRIPTS=$DEST/k2k-idp/devstack/scripts/
+KEYSTONE_SCRIPTS=$DEST/federation/devstack/scripts/
 
 function install_idp(){
     if is_ubuntu; then
-        install_package xmlsec1
-        install_package python-pip
+        install_package xmlsec1 python-pip
     fi
-    sudo pip install pysaml2 configparser
+    sudo pip install pysaml2
 }
 
 function configure_idp(){
@@ -36,8 +35,10 @@ function configure_idp(){
 
         restart_apache_server
 
-        openstack --os-identity-api-version 3 service provider create \
-            --auth-url $SP_AUTH_URL --service-provider-url $SP_URL sp
+        if is_set $SP_AUTH_URL && is_set $SP_URL && is_set $SP_ID; then
+            openstack --os-identity-api-version 3 service provider create \
+                --auth-url $SP_AUTH_URL --service-provider-url $SP_URL sp
+        fi
     fi
 }
 
