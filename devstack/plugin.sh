@@ -36,7 +36,7 @@ function configure_idp(){
 
     if is_set $SP_AUTH_URL && is_set $SP_URL && is_set $SP_ID; then
         openstack --os-identity-api-version 3 service provider create \
-            --auth-url $SP_AUTH_URL --service-provider-url $SP_URL sp
+            --auth-url $SP_AUTH_URL --service-provider-url $SP_URL $SP_ID
     fi
 }
 
@@ -45,11 +45,11 @@ function install_sp() {
         install_package libxml2-dev libxslt-dev python-dev xmlsec1 \
             libapache2-mod-shib2
     else
+        sudo yum-config-manager --add-repo \
+            http://download.opensuse.org/repositories/security://shibboleth/CentOS_7/security:shibboleth.repo
         install_package xmlsec1 xmlsec1-openssl libxml2-devel libxslt-devel \
-            python-devel mod_ssl
+            python-devel mod_ssl shibboleth
     fi
-
-    # Note(knikolla): Need to automate installation of shibboleth in CentOS
 
     sudo pip install pysaml2 lxml
 }
@@ -71,7 +71,7 @@ function configure_sp() {
 
     restart_apache_server
 
-    python $KEYSTONE_SCRIPTS/sp/register_identity_providers.py
+    python $KEYSTONE_SCRIPTS/sp/register_identity_providers.py $IDP_IP
 }
 
 if [[ "$1" == "stack" && "$2" == "install" ]]; then
