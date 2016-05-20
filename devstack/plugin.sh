@@ -13,7 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-KEYSTONE_SCRIPTS=$DEST/federation/devstack/scripts/
+SCRIPTS=$DEST/federation/devstack/scripts
+PLUGIN=$DEST/federation/devstack/files
 
 function install_idp(){
     if is_ubuntu; then
@@ -33,8 +34,6 @@ function configure_idp(){
     keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
 
     restart_apache_server
-
-
 }
 
 function install_sp() {
@@ -58,8 +57,8 @@ function configure_sp() {
         ./etc/shibboleth/keygen.sh -f
     fi
 
-    sudo python $KEYSTONE_SCRIPTS/sp/configure_apache.py
-    sudo python $KEYSTONE_SCRIPTS/sp/configure_shibboleth.py
+    sudo python $SCRIPTS/sp/configure_apache.py
+    sudo python $SCRIPTS/sp/configure_shibboleth.py
 
     iniset $KEYSTONE_CONF auth methods "external,password,token,oauth1,saml2"
     iniset $KEYSTONE_CONF auth saml2 "keystone.auth.plugins.mapped.Mapped"
@@ -68,7 +67,20 @@ function configure_sp() {
 
     restart_apache_server
 
-    python $KEYSTONE_SCRIPTS/sp/register_identity_providers.py $IDP_IP
+    local federated_user=$(get_or_create_user federated_user)
+    local federated_project=$(get_or_create_project federated_project)
+    local federated_group=$(get_or_create_group federated_group)
+    local member_role=$(get_or_create_role _member_)
+
+    openstack role add --project $federated_project --user $federated_user $member_role
+    openstack role add --project $federated_project --group $federated_group $member_role
+
+    openstack --os-identity-api-version 3 identity provider create \
+        --remote-id $IDP_REMOTE_ID $IDP_ID
+    openstack --os-identity-api-version 3 mapping create \
+        --rules $PLUGIN/mapping.txt mapping1
+    openstack --os-identity-api-version 3 federation protocol create \
+        --identity-provider $IDP_ID --mapping mapping1 saml2
 }
 
 if [[ "$1" == "stack" && "$2" == "install" ]]; then
