@@ -34,12 +34,7 @@ function configure_idp(){
         keystone-manage pki_setup
         keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
 
-        # Restart Apache2/httpd
-        if is_ubuntu; then
-            restart_service apache2
-        else
-            restart_service httpd
-        fi
+        restart_apache_server
 
         openstack --os-identity-api-version 3 service provider create \
             --auth-url $SP_AUTH_URL --service-provider-url $SP_URL sp
@@ -82,31 +77,26 @@ function configure_sp() {
 
     sudo a2enmod shib2
 
-    # Restart Apache2/httpd
-    if is_ubuntu; then
-        restart_service apache2
-    else
-        restart_service httpd
-    fi
+    restart_apache_server
 
     python $KEYSTONE_SCRIPTS/sp/register_identity_providers.py
 }
 
 if [[ "$1" == "stack" && "$2" == "install" ]]; then
-    if $IS_K2K_IDP; then
+    if is_service_enabled k2k-idp; then
         install_idp
     fi
 
-    if $IS_K2K_SP; then
+    if is_service_enabled federation-sp; then
         install_sp
     fi
 
 elif [[ "$1" == "stack" && "$2" == "post-config" ]]; then
-    if $IS_K2K_IDP; then
+    if is_service_enabled k2k-idp; then
         configure_idp
     fi
 
-    if $IS_K2K_SP; then
+    if is_service_enabled federation-sp; then
         configure_sp
     fi
 
