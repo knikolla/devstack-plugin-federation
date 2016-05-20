@@ -23,39 +23,30 @@ function install_idp(){
 }
 
 function configure_idp(){
-    if $IS_K2K_IDP; then
-        iniset $KEYSTONE_CONF saml certfile "/etc/keystone/ssl/certs/ca.pem"
-        iniset $KEYSTONE_CONF saml keyfile "/etc/keystone/ssl/private/cakey.pem"
-        iniset $KEYSTONE_CONF saml idp_entity_id "http://$HOST_IP:5000/v3/OS-FEDERATION/saml2/idp"
-        iniset $KEYSTONE_CONF saml idp_sso_endpoint "http://$HOST_IP:5000/v3/OS-FEDERATION/saml2/sso"
-        iniset $KEYSTONE_CONF saml idp_metadata_path "/etc/keystone/keystone_idp_metadata.xml"
+    iniset $KEYSTONE_CONF saml certfile "/etc/keystone/ssl/certs/ca.pem"
+    iniset $KEYSTONE_CONF saml keyfile "/etc/keystone/ssl/private/cakey.pem"
+    iniset $KEYSTONE_CONF saml idp_entity_id "http://$HOST_IP:5000/v3/OS-FEDERATION/saml2/idp"
+    iniset $KEYSTONE_CONF saml idp_sso_endpoint "http://$HOST_IP:5000/v3/OS-FEDERATION/saml2/sso"
+    iniset $KEYSTONE_CONF saml idp_metadata_path "/etc/keystone/keystone_idp_metadata.xml"
 
-        keystone-manage pki_setup
-        keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
+    keystone-manage pki_setup
+    keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
 
-        restart_apache_server
+    restart_apache_server
 
-        if is_set $SP_AUTH_URL && is_set $SP_URL && is_set $SP_ID; then
-            openstack --os-identity-api-version 3 service provider create \
-                --auth-url $SP_AUTH_URL --service-provider-url $SP_URL sp
-        fi
+    if is_set $SP_AUTH_URL && is_set $SP_URL && is_set $SP_ID; then
+        openstack --os-identity-api-version 3 service provider create \
+            --auth-url $SP_AUTH_URL --service-provider-url $SP_URL sp
     fi
 }
 
 function install_sp() {
     if is_ubuntu; then
-        install_package libxml2-dev
-        install_package libxslt-dev
-        install_package python-dev
-        install_package xmlsec1
-        install_package libapache2-mod-shib2
+        install_package libxml2-dev libxslt-dev python-dev xmlsec1 \
+            libapache2-mod-shib2
     else
-        install_package xmlsec1
-        install_package xmlsec1-openssl
-        install_package libxml2-devel
-        install_package libxslt-devel
-        install_package python-devel
-        install_package mod_ssl
+        install_package xmlsec1 xmlsec1-openssl libxml2-devel libxslt-devel \
+            python-devel mod_ssl
     fi
 
     # Note(knikolla): Need to automate installation of shibboleth in CentOS
