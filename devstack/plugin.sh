@@ -34,10 +34,8 @@ function configure_idp(){
 
     restart_apache_server
 
-    if is_set $SP_AUTH_URL && is_set $SP_URL && is_set $SP_ID; then
-        openstack --os-identity-api-version 3 service provider create \
-            --auth-url $SP_AUTH_URL --service-provider-url $SP_URL $SP_ID
-    fi
+    openstack --os-identity-api-version 3 service provider create \
+        --auth-url $SP_AUTH_URL --service-provider-url $SP_URL $SP_ID
 }
 
 function install_sp() {
