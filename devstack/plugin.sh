@@ -29,7 +29,7 @@ function configure_idp(){
         iniset $KEYSTONE_CONF saml keyfile "/etc/keystone/ssl/private/cakey.pem"
         iniset $KEYSTONE_CONF saml idp_entity_id "http://$HOST_IP:5000/v3/OS-FEDERATION/saml2/idp"
         iniset $KEYSTONE_CONF saml idp_sso_endpoint "http://$HOST_IP:5000/v3/OS-FEDERATION/saml2/sso"
-        iniset $KEYSTONE_CONF saml idp_metadata_path = "/etc/keystone/keystone_idp_metadata.xml"
+        iniset $KEYSTONE_CONF saml idp_metadata_path "/etc/keystone/keystone_idp_metadata.xml"
 
         keystone-manage pki_setup
         keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
@@ -62,8 +62,9 @@ function install_sp() {
         install_package mod_ssl
     fi
 
+    # Note(knikolla): Need to automate installation of shibboleth in CentOS
+
     sudo pip install pysaml2 lxml
-    sudo pip install configparser python-hosts
 }
 
 function configure_sp() {
@@ -75,7 +76,9 @@ function configure_sp() {
 
     sudo python $KEYSTONE_SCRIPTS/sp/configure_apache.py
     sudo python $KEYSTONE_SCRIPTS/sp/configure_shibboleth.py
-    sudo python $KEYSTONE_SCRIPTS/sp/configure_keystone.py
+
+    iniset $KEYSTONE_CONF auth methods "external,password,token,oauth1,saml2"
+    iniset $KEYSTONE_CONF auth saml2 "keystone.auth.plugins.mapped.Mapped"
 
     sudo a2enmod shib2
 
