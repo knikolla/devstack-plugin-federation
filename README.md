@@ -1,1 +1,1 @@
-# devstack-plugin-k2k-idp
+# devstack-plugin-k2k

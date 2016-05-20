@@ -1,4 +1,17 @@
 #!/usr/bin/env bash
+# Copyright 2016 Massachusetts Open Cloud
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
 KEYSTONE_SCRIPTS=$DEST/k2k-idp/devstack/scripts/
 
@@ -12,7 +25,7 @@ function install_idp(){
 
 function configure_idp(){
     if $IS_K2K_IDP; then
-        sudo python $KEYSTONE_SCRIPTS/k2k-idp/configure_keystone.py $IDP_IP
+        sudo python $KEYSTONE_SCRIPTS/idp/configure_keystone.py $IDP_IP
 
         keystone-manage pki_setup
         keystone-manage saml_idp_metadata > /etc/keystone/keystone_idp_metadata.xml
@@ -24,7 +37,7 @@ function configure_idp(){
             restart_service httpd
         fi
 
-        # python $KEYSTONE_SCRIPTS/k2k-idp/register_service_providers.py
+        python $KEYSTONE_SCRIPTS/idp/register_service_providers.py $HOST_IP
     fi
 }
 
@@ -55,9 +68,9 @@ function configure_sp() {
         ./etc/shibboleth/keygen.sh -f
     fi
 
-    sudo python $KEYSTONE_SCRIPTS/k2k-sp/configure_apache.py
-    sudo python $KEYSTONE_SCRIPTS/k2k-sp/configure_shibboleth.py
-    sudo python $KEYSTONE_SCRIPTS/k2k-sp/configure_keystone.py
+    sudo python $KEYSTONE_SCRIPTS/sp/configure_apache.py
+    sudo python $KEYSTONE_SCRIPTS/sp/configure_shibboleth.py
+    sudo python $KEYSTONE_SCRIPTS/sp/configure_keystone.py
 
     sudo a2enmod shib2
 
@@ -68,7 +81,7 @@ function configure_sp() {
         restart_service httpd
     fi
 
-    python $KEYSTONE_SCRIPTS/k2k-sp/register_identity_providers.py
+    python $KEYSTONE_SCRIPTS/sp/register_identity_providers.py
 }
 
 if [[ "$1" == "stack" && "$2" == "install" ]]; then
