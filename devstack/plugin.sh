@@ -13,8 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-SCRIPTS=$DEST/federation/devstack/scripts
-FILES=$DEST/federation/devstack/files
+FEDERATION_SCRIPTS=$DEST/federation/devstack/scripts
+FEDERATION_FILES=$DEST/federation/devstack/files
 
 function install_idp(){
     if is_ubuntu; then
@@ -51,20 +51,17 @@ function install_sp() {
 }
 
 function configure_sp() {
-    local apache_conf
     if is_ubuntu; then
         sudo shib-keygen -f
-        apache_conf="/etc/apache2/sites-available/keystone.conf"
     else
         ./etc/shibboleth/keygen.sh -f
-        apache_conf="/etc/httpd/conf.d/keystone.conf"
     fi
 
     # Note(knikolla): Configuring apache
-    sudo sed -i "/\<VirtualHost \*\:5000\>/a WSGIScriptAliasMatch \^(/v3/OS-FEDERATION/identity_providers/.\*?/protocols/.\*?/auth)$ /var/www/keystone/main/$1" $apache_conf
-    sudo cat $FILES/shib_handler.txt > $apache_conf
+    local keystone_apache_conf=$(apache_site_config_for keystone)
+    sudo cp $FEDERATION_FILES/apache-keystone.template $keystone_apache_conf
 
-    sudo python $SCRIPTS/sp/configure_shibboleth.py
+    sudo python $FEDERATION_SCRIPTS/sp/configure_shibboleth.py
 
     iniset $KEYSTONE_CONF auth methods "external,password,token,oauth1,saml2"
     iniset $KEYSTONE_CONF auth saml2 "keystone.auth.plugins.mapped.Mapped"
