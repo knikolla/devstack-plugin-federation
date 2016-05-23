@@ -9,7 +9,7 @@
                     }
                 },
                 "group": {
-                    "name": "federated_group"
+                    "name": "federated_group",
                     "domain": {
                         "id": "default"
                     }
