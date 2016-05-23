@@ -31,6 +31,7 @@ openstack --os-identity-api-version 3 service provider create \
 # Enable the Federation Service Provider (temporarily k2k specific instructions)
 enable_service federation-sp
 IDP_REMOTE_ID=http://XXX.YYY.ZZZ:35357/v3/OS-FEDERATION/saml2/idp
+IDP_METADATA=http://XXX.YYY.ZZZ:5000/v3/OS-FEDERATION/saml2/metadata
 IDP_ID=idp
 FEDERATION_PROTOCOL=saml2
 ```

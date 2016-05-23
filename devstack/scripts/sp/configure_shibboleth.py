@@ -13,13 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 from lxml import etree as ET
+import sys
 
-import python_hosts
-hosts = python_hosts.Hosts()
-for host in hosts.entries:
-    if host.names is not None and 'idp' in host.names[0]:
-        IDP_IP = host.address
-        break
+IDP_REMOTE_ID = sys.argv[1]
+IDP_METADATA = sys.argv[2]
 
 SHIBBOLETH_VERSION = "2.5.2" #For debugging purposes
 
@@ -40,10 +37,10 @@ OPENSTACK_ATTRIB = [{'name': 'openstack_user', 'id': 'openstack_user'},
 # Tags to be added into shibboleth2.xml
 SSO_NAME = "{urn:mace:shibboleth:2.0:native:sp:config}SSO"
 SSO_ATTRIB_KEY = "entityID"
-SSO_ATTRIB_VALUE = "http://" + IDP_IP + ":5000/v3/OS-FEDERATION/saml2/idp"
+SSO_ATTRIB_VALUE = IDP_REMOTE_ID
 SSO_ATTRIBS = {SSO_ATTRIB_KEY: SSO_ATTRIB_VALUE}
 METADATA_NAME = "{urn:mace:shibboleth:2.0:native:sp:config}MetadataProvider"
-METADATA_URI= "http://" + IDP_IP + ":5000/v3/OS-FEDERATION/saml2/metadata"
+METADATA_URI= IDP_METADATA
 METADATA_ATTRIB = {'type':'XML', 'uri': METADATA_URI}
 
 parser = ET.XMLParser(remove_blank_text=False)

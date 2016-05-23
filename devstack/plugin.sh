@@ -61,7 +61,7 @@ function configure_sp() {
     local keystone_apache_conf=$(apache_site_config_for keystone)
     sudo cp $FEDERATION_FILES/apache-keystone.template $keystone_apache_conf
 
-    sudo python $FEDERATION_SCRIPTS/sp/configure_shibboleth.py
+    sudo python $FEDERATION_SCRIPTS/sp/configure_shibboleth.py $IDP_REMOTE_ID $ID_METADATA
 
     iniset $KEYSTONE_CONF auth methods "external,password,token,oauth1,saml2"
     iniset $KEYSTONE_CONF auth saml2 "keystone.auth.plugins.mapped.Mapped"
