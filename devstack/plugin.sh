@@ -72,7 +72,7 @@ function configure_sp() {
 
     local federated_user=$(get_or_create_user federated_user)
     local federated_project=$(get_or_create_project federated_project)
-    local federated_group=$(get_or_create_group federated_group)
+    local federated_group=$(get_or_create_group federated_group default)
     local member_role=$(get_or_create_role _member_)
 
     openstack role add --project $federated_project --user $federated_user $member_role
