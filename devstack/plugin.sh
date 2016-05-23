@@ -59,7 +59,7 @@ function configure_sp() {
 
     local keystone_apache_conf=$(apache_site_config_for keystone)
     sudo sed -i "/\<VirtualHost \*\:5000\>/a WSGIScriptAliasMatch \^(/v3/OS-FEDERATION/identity_providers/.\*?/protocols/.\*?/auth)$ /var/www/keystone/main/$1" $keystone_apache_conf
-    sudo cat $FEDERATION_FILES/shib_handler.txt > $keystone_apache_conf
+    cat $keystone_apache_conf | sudo tee $FEDERATION_FILES/shib_handler.txt
 
     sudo python $FEDERATION_SCRIPTS/sp/configure_shibboleth.py $IDP_REMOTE_ID $ID_METADATA
 
