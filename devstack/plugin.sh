@@ -57,9 +57,9 @@ function configure_sp() {
         ./etc/shibboleth/keygen.sh -f
     fi
 
-    # Note(knikolla): Configuring apache
     local keystone_apache_conf=$(apache_site_config_for keystone)
-    sudo cp $FEDERATION_FILES/apache-keystone.template $keystone_apache_conf
+    sudo sed -i "/\<VirtualHost \*\:5000\>/a WSGIScriptAliasMatch \^(/v3/OS-FEDERATION/identity_providers/.\*?/protocols/.\*?/auth)$ /var/www/keystone/main/$1" $keystone_apache_conf
+    sudo cat $FEDERATION_FILES/shib_handler.txt > $keystone_apache_conf
 
     sudo python $FEDERATION_SCRIPTS/sp/configure_shibboleth.py $IDP_REMOTE_ID $ID_METADATA
 
