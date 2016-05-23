@@ -81,7 +81,7 @@ function configure_sp() {
     openstack --os-identity-api-version 3 identity provider create \
         --remote-id $IDP_REMOTE_ID $IDP_ID
     openstack --os-identity-api-version 3 mapping create \
-        --rules $FILES/mapping.txt mapping1
+        --rules $FEDERATION_FILES/mapping.txt mapping1
     openstack --os-identity-api-version 3 federation protocol create \
         --identity-provider $IDP_ID --mapping mapping1 saml2
 }
