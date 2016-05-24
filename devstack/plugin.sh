@@ -61,7 +61,12 @@ function configure_sp() {
     sudo sed -i "/\<VirtualHost \*\:5000\>/a WSGIScriptAliasMatch \^(/v3/OS-FEDERATION/identity_providers/.\*?/protocols/.\*?/auth)$ /var/www/keystone/main/\$1" $keystone_apache_conf
     cat $FEDERATION_FILES/shib_handler.txt | sudo tee -a $keystone_apache_conf
 
-    sudo python $FEDERATION_SCRIPTS/sp/configure_shibboleth.py $IDP_REMOTE_ID $IDP_METADATA
+    sudo cp $KEYSTONE_FILES/attribute-map.xml /etc/shibboleth/attribute-map.xml
+    sudo cp $KEYSTONE_FILE/shibboleth2.xml /etc/shibboleth/shibboleth2.xml
+    sudo sed -e "
+        s|%IDP_REMOTE_ID%|$IDP_REMOTE_ID|g;
+        s|%IDP_METADATA%|$IDP_METADATA|g;
+    " -i /etc/shibboleth/shibboleth2.xml
 
     iniset $KEYSTONE_CONF auth methods "external,password,token,oauth1,saml2"
     iniset $KEYSTONE_CONF auth saml2 "keystone.auth.plugins.mapped.Mapped"
