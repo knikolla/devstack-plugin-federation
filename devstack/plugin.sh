@@ -74,6 +74,7 @@ function configure_sp() {
     sudo a2enmod shib2
 
     restart_apache_server
+    restart_shibboleth
 
     local federated_user=$(get_or_create_user federated_user)
     local federated_project=$(get_or_create_project federated_project)
@@ -91,6 +92,11 @@ function configure_sp() {
         --identity-provider $IDP_ID --mapping mapping1 saml2
 }
 
+function restart_shibboleth() {
+    if is_ubuntu; then
+        restart_service shibd
+    fi
+}
 if [[ "$1" == "stack" && "$2" == "install" ]]; then
     if is_service_enabled k2k-idp; then
         install_idp
